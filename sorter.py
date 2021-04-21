@@ -1,6 +1,7 @@
 import sqlite3
 import InsertSongToDBMethods
 import mysql.connector
+from threading import *
 import gc
 
 
@@ -12,6 +13,7 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor()
 
+jacsimcomp_global = {}
 
 
 
@@ -24,9 +26,44 @@ cursor = db.cursor()
 
 
 def test():
-    db = pyodbc.connect(
-        'DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=D:\Yotam\Song_Bites.db;UID=me;PWD=pass')
-    cursor1 = db.cursor()
+    bitestr = InsertSongToDBMethods.DBconversion("recordingbite.png")
+    sim = 0
+    dif = 0
+    jacof = 0
+    jacsim = {}
+    cursor.execute("SELECT * FROM songbites")
+    QUERY_SIZE = 500
+    biteslen = QUERY_SIZE
+
+
+    while biteslen == QUERY_SIZE:
+        bites = cursor.fetchmany(size=QUERY_SIZE)
+        biteslen = len(bites)
+
+        for bite in bites:
+            #print(bite[0])
+            for i in range(len(bite[2])):
+                if bitestr[i] == "1" and bite[2][i] == "0":
+                    dif += 1
+                elif bitestr[i] == "0" and bite[2][i] == "1":
+                    dif += 1
+                elif bitestr[i] == "1" and bite[2][i] == "1":
+                    sim += 1
+                    dif += 1
+            jacof = sim/dif
+            jacsim[bite[0]] = jacof
+            sim = 0
+            dif = 0
+    sorted_jacsim = sorted(jacsim.items(), key=lambda x: x[1], reverse=True)
+    counter = 0
+    for key in sorted_jacsim:
+        print(key[0] + " , " + str(key[1]))
+
+        if counter == 10:
+            break
+        counter += 1
+
+
 
 
 
@@ -37,18 +74,20 @@ def sorter():
     #this method of obtaining the amountofwhite for the bites is not the most efficent, and the ultimate way to do so is to retrieve it when retreiving the bites themselves
     amountofwhitesdict = {}
     amountofwhites = InsertSongToDBMethods.getamountofwhites("recordingbite.png")
-    print("Recording's amount of whites - " + str(amountofwhites))
+    #print("Recording's amount of whites - " + str(amountofwhites))
     bitestr = InsertSongToDBMethods.DBconversion("recordingbite.png")
     compressstr = InsertSongToDBMethods.compressbite(bitestr)
     cursor.execute("SELECT * FROM SongBites")
-    biteslen = 1000
+    QUERY_SIZE = 1000
+    biteslen =  QUERY_SIZE
 
 
 
 
 
-    while biteslen == 1000:
-        bites = cursor.fetchmany(size=1000)
+
+    while biteslen ==  QUERY_SIZE:
+        bites = cursor.fetchmany(size= QUERY_SIZE)
         biteslen = len(bites)
 
 
@@ -70,14 +109,16 @@ def sorter():
 
 
 
+
     sorted_jacsimcomp = sorted(jacsimcomp.items(), key=lambda x: x[1], reverse=True)
-    first_1000_sorted_jacsimcomp = sorted_jacsimcomp[:1000]
+    first_200_sorted_jacsimcomp = sorted_jacsimcomp[:200]
     sim = 0
     dif = 0
 
-    print(first_1000_sorted_jacsimcomp[0])
+    #print(first_1000_sorted_jacsimcomp[0])
 
-    for bite in first_1000_sorted_jacsimcomp:
+    for bite in first_200_sorted_jacsimcomp:
+        print(bite[0] + "," + str(bite[1]))
         cursor.execute("SELECT bite FROM SongBites WHERE songbite = '{}'".format(bite[0]))
         songbite = cursor.fetchall()
         #print(songbite[0][0])
@@ -105,7 +146,7 @@ def sorter():
 
 
 
-
+'''
     counter = 0
     for key in sorted_jacsim:
         print(key[0] + " , " + str(key[1]) + ", amount of whites - " + str(amountofwhitesdict[key[0]]) + " , similarity between compressed bites: " + str(jacsimcomp[key[0]]) )
@@ -121,9 +162,82 @@ def sorter():
         if counter == 10:
             break
         counter+=1
+'''
 
 
-sorter()
+def sorter_thread():
+    global jacsimcomp_global
+    print("method started...")
+    QUERY_SIZE = 200
+    biteslen = 200
+    jacsimcomp = {}
+    db = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        passwd="password",
+        database="songbites"
+    )
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM SongBites")
+
+    bitestr = InsertSongToDBMethods.DBconversion("recordingbite.png")
+    compressstr = InsertSongToDBMethods.compressbite(bitestr)
+
+    while biteslen == QUERY_SIZE:
+        bites = cursor.fetchmany(size=QUERY_SIZE)
+        biteslen = len(bites)
+
+        for bite in bites:
+            # print(bite[0])
+            # print(len(bite[2]))
+            sim = 0
+            dif = 0
+            for i in range(len(bite[4])):
+                if compressstr[i] == "1" and bite[4][i] == "0":
+                    dif += 1
+                elif compressstr[i] == "0" and bite[4][i] == "1":
+                    dif += 1
+                elif compressstr[i] == "1" and bite[4][i] == "1":
+                    sim += 1
+                    dif += 1
+            jacoscomp = sim / dif
+            jacsimcomp_global[bite[0]] = jacoscomp
+    print("method finished...")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+threads = []
+
+
+for i in range(6):
+    a = Thread(target=sorter_thread)
+    a.start()
+    print("Thread started...")
+    threads.append(a)
+
+for thread in threads:
+    thread.join()
+
+sorted_jacsimcomp_global = sorted_jacsim = sorted(jacsimcomp_global.items(),key=lambda x: x[1],reverse=True)
+for bite in sorted_jacsimcomp_global:
+    print(bite[0])
+
+
+
+#sorter()
 #test()
 
 
