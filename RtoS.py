@@ -2,17 +2,17 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 from PIL import Image
-import InsertSongToDBMethods
+
 
 filepath = 'output.wav'
 
 
 
 def turnimagetobiterecording(filepath_image):
-    CRIT_VALUE = 1
+    CRIT_VALUE = 0.9
     pixel_and_value = {}
     val = 0
-    vallist = []
+
 
     img = Image.open(filepath_image)
     pixelMap = img.load()
@@ -25,7 +25,6 @@ def turnimagetobiterecording(filepath_image):
             skr = img.getpixel((x,y))
             if skr[1] + skr[2] != 0:
                 val = skr[0]/(skr[1]+skr[2])
-                vallist.append(val)
                 pixel_and_value[(x,y)] = val
             else:
                 pixel_and_value[(x,y)] = 0
@@ -52,7 +51,7 @@ def recordingToSpectrogram(filepath):
     Xdb = librosa.amplitude_to_db(abs(X))
     plt.figure(figsize=(14, 5))
     librosa.display.specshow(Xdb,cmap='coolwarm', sr=sr, x_axis='time', y_axis='hz')
-    plt.axis([0,3,300,2000])
+    plt.axis([0,3,0,4000])
     plt.savefig("recordingtemp.png")
     img = Image.open("recordingtemp.png")
     #(left, upper, right, lower)
@@ -60,9 +59,6 @@ def recordingToSpectrogram(filepath):
     region.save("recordingspectemp.png")
 
 
-    #plt.colorbar()
-
-    #plt.show()
 
 
 

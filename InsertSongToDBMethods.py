@@ -1,8 +1,6 @@
-from pydub import AudioSegment
 import wave
 import contextlib
 from PIL import Image
-import sqlite3
 import matplotlib.pyplot as plt
 import librosa
 import librosa.display
@@ -31,16 +29,6 @@ def DBconversion(filepath_image):
 
 
 
-def getamountofwhites(filepath_image):
-    img = Image.open(filepath_image)
-    width, height = img.size
-    Amount_Of_Whites = 0
-    for x in range(width):
-        for y in range(height):
-            skr = img.getpixel((x, y))
-            if skr[0] == 255:
-                Amount_Of_Whites += 1
-    return Amount_Of_Whites
 
 
 def biteToSpectrogram(filepath_song):
@@ -51,7 +39,7 @@ def biteToSpectrogram(filepath_song):
 
     librosa.display.specshow(Xdb, sr=sr, x_axis='time', y_axis='hz')
     #if you wish to change the length in time of each bite, change the 3 into whatever length you like(in seconds)
-    plt.axis([0,3,300,2000])
+    plt.axis([0,3,0,4000])
 
 
 
@@ -64,27 +52,52 @@ def biteToSpectrogram(filepath_song):
     #return plt
 
 
-def compressbite(DBstring):
+
+def getamountofwhitesstring(DBstring):
+    amountofwhites = 0
+    for bit in DBstring:
+        if bit == "1":
+            amountofwhites+=1
+    return amountofwhites
+
+
+
+
+
+
+def hasher(DBstring):
+
+    HASH_LENGTH = 32
+
+    amountofwhites = getamountofwhitesstring(DBstring)
+    #print(amountofwhites)
+    aowconstant = amountofwhites/HASH_LENGTH
+
     counter = 0
     mincounter = 0
     minstr = ""
     retstr = ""
-    while counter < (len(DBstring)/9):
+    #print(len(DBstring))
+    while counter < (len(DBstring)):
         minstr = minstr + DBstring[counter]
-        counter+=1
-        mincounter+=1
-        if mincounter == 9:
+        counter += 1
+        mincounter += 1
+        if mincounter == 13054:
             bincounter = 0
             for i in minstr:
                 if i == "1":
-                    bincounter+=1
-            if bincounter > 4:
+                    bincounter += 1
+            if bincounter > aowconstant:
                 retstr = retstr + "1"
             else:
                 retstr = retstr + "0"
             mincounter = 0
             minstr = ""
+    #print(retstr)
     return retstr
+
+
+
 
 
 
