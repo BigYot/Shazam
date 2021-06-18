@@ -72,11 +72,12 @@ def sorter():
     for key in sorted_jacsim:
         cursor.execute("SELECT songname FROM SongBites WHERE songbite = '{}'".format(key[0]))
         name = cursor.fetchall()
+
         
-        if key[1] >= 0.15:
+        if key[1] >= 0.03:
             return name[0][0]
         else: return ""
-        
+
         print(key[0] + "," +  name[0][0] + " , " + str(key[1]))
         '''
         if counter == 10:
@@ -175,7 +176,7 @@ def sort_hashbite(hashbite):
 
 
 
-sorter()
+#sorter()
 #test()
 #test1()
 #sort_hashbite()

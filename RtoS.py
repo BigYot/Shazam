@@ -9,7 +9,7 @@ filepath = 'output.wav'
 
 
 def turnimagetobiterecording(filepath_image):
-    CRIT_VALUE = 0.9
+    CRIT_VALUE = 1
     pixel_and_value = {}
     val = 0
 
@@ -63,6 +63,6 @@ def recordingToSpectrogram(filepath):
 
 
 
-recordingToSpectrogram(filepath)
+#recordingToSpectrogram(filepath)
 
-turnimagetobiterecording("recordingspectemp.png")
+#turnimagetobiterecording("recordingspectemp.png")

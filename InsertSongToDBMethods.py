@@ -103,7 +103,7 @@ def hasher(DBstring):
 
 
 def turnimagetobite(filepath_image,filepath_tosaveto):
-    CRIT_VALUE = 0.9
+    CRIT_VALUE = 1
     pixel_and_value = {}
     val = 0
     vallist = []

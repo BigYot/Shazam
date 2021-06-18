@@ -15,4 +15,4 @@ def record():
     write('output.wav', fs, myrecording)  # Save as WAV file
 
 
-record()
+#record()
